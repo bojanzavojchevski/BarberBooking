@@ -89,6 +89,7 @@ dotnet ef migrations add InitialCreate \
 dotnet ef database update \
   --project BarberBooking.Infrastructure \
   --startup-project BarberBooking.WebApi
+```
 
 ---
 
