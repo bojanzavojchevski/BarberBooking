@@ -2,6 +2,9 @@ using BarberBooking.Infrastructure.Persistence;
 using BarberBooking.Infrastructure.DependencyInjection;
 using BarberBooking.WebApi.Middleware;
 using Serilog;
+using BarberBooking.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 
 Log.Logger = new LoggerConfiguration()
@@ -27,6 +30,7 @@ builder.Services.AddHealthChecks()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddDataProtection();
 
 
 var app = builder.Build();
@@ -50,6 +54,7 @@ app.MapHealthChecks("/health/ready");
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

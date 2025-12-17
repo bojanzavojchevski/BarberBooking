@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>88af1469-5ce8-4249-9942-74518e17c35c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,10 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
     <Folder Include="Filters\" />
     <Folder Include="HealthChecks\" />
-    <Folder Include="NewFolder\" />
   </ItemGroup>
 
 </Project>
