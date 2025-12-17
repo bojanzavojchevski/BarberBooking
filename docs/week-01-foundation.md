@@ -27,6 +27,7 @@ BarberBooking
 ├── BarberBooking.Infrastructure
 ├── BarberBooking.WebApi
 └── BarberBooking.sln
+```
 
 ---
 
