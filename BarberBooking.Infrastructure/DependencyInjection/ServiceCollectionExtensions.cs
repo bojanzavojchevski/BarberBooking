@@ -1,4 +1,10 @@
-﻿using BarberBooking.Infrastructure.Persistence;
+﻿using BarberBooking.Application.Auth.Interfaces;
+using BarberBooking.Infrastructure.Auth;
+using BarberBooking.Infrastructure.Identity;
+using BarberBooking.Infrastructure.Persistence;
+using BarberBookingApp.Infrastructure.Auth;
+using BarberBookingApp.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,8 +14,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using BarberBooking.Infrastructure.Identity;
 
 
 
@@ -35,6 +39,12 @@ public static class ServiceCollectionExtensions
             .AddEntityFrameworkStores<AppDbContext>()
             .AddSignInManager()
             .AddDefaultTokenProviders();
+
+        services.Configure<JwtOptions>(config.GetSection("Jwt"));
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
+        services.AddScoped<IUserAuthProvider, UserAuthProvider>();
+
 
         return services;
     }

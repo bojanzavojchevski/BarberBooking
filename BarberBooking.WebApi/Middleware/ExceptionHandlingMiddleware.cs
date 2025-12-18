@@ -1,17 +1,13 @@
 ﻿using System.Net;
 using System.Text.Json;
 
-
 namespace BarberBooking.WebApi.Middleware;
 
 public sealed class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
+    public ExceptionHandlingMiddleware(RequestDelegate next) => _next = next;
 
     public async Task Invoke(HttpContext context)
     {
@@ -19,16 +15,34 @@ public sealed class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
-        catch (Exception ex)
+        catch (UnauthorizedAccessException ex)
         {
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            context.Response.ContentType = "application/problem+json";
 
             var payload = new
             {
+                type = "https://httpstatuses.com/401",
+                title = "Unauthorized",
+                status = 401,
                 traceId = context.TraceIdentifier,
-                error = "UnexpectedError",
-                message = ex.Message
+                detail = ex.Message // за invalid credentials е ок да вратиш кратка порака
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+        }
+        catch (Exception ex)
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.ContentType = "application/problem+json";
+
+            var payload = new
+            {
+                type = "https://httpstatuses.com/500",
+                title = "Internal Server Error",
+                status = 500,
+                traceId = context.TraceIdentifier,
+                detail = "An unexpected error occurred."
             };
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(payload));

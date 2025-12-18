@@ -1,58 +1,36 @@
-﻿using BarberBooking.Infrastructure.Identity;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using BarberBooking.Application.Auth.DTOs;
+using BarberBooking.Application.Auth.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BarberBooking.WebApi.Controllers;
 
-
 [ApiController]
-[Route("auth")]
-public class AuthController : ControllerBase
+[Route("api/auth")]
+public sealed class AuthController : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly IAuthService _auth;
 
-    public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
-    {
-        _userManager = userManager;
-        _signInManager = signInManager;
-    }
-
-    public record RegisterRequest(string Email, string Password);
-    public record LoginRequest(string Email, string Password);
-
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest req)
-    {
-        var user = new ApplicationUser
-        {
-            Id = Guid.NewGuid(),
-            UserName = req.Email,
-            Email = req.Email
-        };
-
-        var result = await _userManager.CreateAsync(user, req.Password);
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return Ok(new { message = "Registered" });
-    }
+    public AuthController(IAuthService auth) => _auth = auth;
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginRequest req)
+    public async Task<ActionResult<AuthTokensDto>> Login([FromBody] LoginRequestDto dto, CancellationToken ct)
     {
-        var user = await _userManager.FindByEmailAsync(req.Email);
-        if (user is null)
-            return Unauthorized();
+        var client = new ClientContextDto(
+            Ip: HttpContext.Connection.RemoteIpAddress?.ToString(),
+            UserAgent: Request.Headers.UserAgent.ToString()
+        );
 
-        var result = await _signInManager.CheckPasswordSignInAsync(user, req.Password, lockoutOnFailure: true);
-
-        if (!result.Succeeded)
-            return Unauthorized();
-
-        return Ok(new { message = "Login OK" });
+        return Ok(await _auth.LoginAsync(dto, client, ct));
     }
 
+    [HttpPost("refresh")]
+    public async Task<ActionResult<AuthTokensDto>> Refresh([FromBody] RefreshRequestDto dto, CancellationToken ct)
+    {
+        var client = new ClientContextDto(
+            Ip: HttpContext.Connection.RemoteIpAddress?.ToString(),
+            UserAgent: Request.Headers.UserAgent.ToString()
+        );
 
+        return Ok(await _auth.RefreshAsync(dto, client, ct));
+    }
 }

@@ -27,14 +27,14 @@ public sealed class AuthService : IAuthService
         if (found is null)
             throw new UnauthorizedAccessException("Invalid credentials.");
 
-        var ok = await _users.CheckPasswordAsync(found.Value.userId, request.Password, ct);
+        var ok = await _users.CheckPasswordAsync(found.Value.UserId, request.Password, ct);
         if (!ok)
             throw new UnauthorizedAccessException("Invalid credentials.");
 
-        var roles = await _users.GetRolesAsync(found.Value.userId, ct);
-        var (access, accessExp) = _jwt.CreateAccessToken(found.Value.userId, found.Value.Email, roles);
+        var roles = await _users.GetRolesAsync(found.Value.UserId, ct);
+        var (access, accessExp) = _jwt.CreateAccessToken(found.Value.UserId, found.Value.Email, roles);
 
-        var (refresh, refreshExp) = await _refresh.IssueAsync(found.Value.userId, client.Ip, client.UserAgent, ct);
+        var (refresh, refreshExp) = await _refresh.IssueAsync(found.Value.UserId, client.Ip, client.UserAgent, ct);
 
         return new AuthTokensDto(access, accessExp, refresh, refreshExp);
     }
