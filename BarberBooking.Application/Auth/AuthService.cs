@@ -24,7 +24,7 @@ public sealed class AuthService : IAuthService
     public async Task<AuthTokensDto> LoginAsync(LoginRequestDto request, ClientContextDto client, CancellationToken ct)
     {
         var found = await _users.FindByEmailAsync(request.Email, ct);
-        if (found is null) 
+        if (found is null)
             throw new UnauthorizedAccessException("Invalid credentials.");
 
         var ok = await _users.CheckPasswordAsync(found.Value.userId, request.Password, ct);
