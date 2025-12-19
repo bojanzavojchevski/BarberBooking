@@ -15,7 +15,7 @@ public sealed class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
-        catch (UnauthorizedAccessException ex)
+        catch (UnauthorizedAccessException)
         {
             context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
             context.Response.ContentType = "application/problem+json";
@@ -26,7 +26,7 @@ public sealed class ExceptionHandlingMiddleware
                 title = "Unauthorized",
                 status = 401,
                 traceId = context.TraceIdentifier,
-                detail = ex.Message // за invalid credentials е ок да вратиш кратка порака
+                detail = "Unauthorized"
             };
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(payload));

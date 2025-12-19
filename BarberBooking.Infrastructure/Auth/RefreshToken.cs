@@ -11,6 +11,8 @@ public sealed class RefreshToken
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
 
+    public Guid FamilyId { get; set; }
+
     public string TokenHash { get; set; } = default!;
 
     public DateTime CreatedAtUtc { get; set; }
@@ -23,5 +25,5 @@ public sealed class RefreshToken
     public string? RevokedByIp { get; set; }
     public string? UserAgent { get; set; }
 
-    public bool IsActive => RevokedAtUtc is null && ExpiresAtUtc > DateTime.UtcNow;
+    //public bool IsActive => RevokedAtUtc is null && ExpiresAtUtc > DateTime.UtcNow;
 }

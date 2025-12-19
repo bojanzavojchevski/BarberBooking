@@ -57,6 +57,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDataProtection();
 
 
+
+
 var app = builder.Build();
 
 // Initialize Serilog 
@@ -82,5 +84,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+await RoleSeeder.SeedAsync(app.Services);
 
 app.Run();

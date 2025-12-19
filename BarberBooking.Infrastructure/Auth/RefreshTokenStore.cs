@@ -41,11 +41,13 @@ public sealed class RefreshTokenStore : IRefreshTokenStore
         var token = GenerateRawToken();
         var now = DateTime.UtcNow;
         var exp = now.AddDays(_refreshDays);
+        var familyId = Guid.NewGuid();
 
         var entity = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = userId,
+            FamilyId = familyId,
             TokenHash = Hash(token),
             CreatedAtUtc = now,
             ExpiresAtUtc = exp,
@@ -70,7 +72,7 @@ public sealed class RefreshTokenStore : IRefreshTokenStore
         // REUSE detection: ако веќе е revoked -> компромитирано
         if (old.RevokedAtUtc is not null)
         {
-            await RevokeAllAsync(old.UserId, "Refresh token reuse detected", ip, ct);
+            await RevokeFamilyInternalAsync(old.UserId, old.FamilyId, ip, ct);
             throw new UnauthorizedAccessException("Refresh token reuse detected.");
         }
 
@@ -104,7 +106,30 @@ public sealed class RefreshTokenStore : IRefreshTokenStore
         }
 
         await _db.SaveChangesAsync(ct);
-        // reason можеш да го логираш со Serilog (не го чуваме во DB за сега)
+    }
+
+    private async Task RevokeFamilyInternalAsync(
+    Guid userId,
+    Guid familyId,
+    string? ip,
+    CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+
+        var tokens = await _db.RefreshTokens
+            .Where(x =>
+                x.UserId == userId &&
+                x.FamilyId == familyId &&
+                x.RevokedAtUtc == null)
+            .ToListAsync(ct);
+
+        foreach (var t in tokens)
+        {
+            t.RevokedAtUtc = now;
+            t.RevokedByIp = ip;
+        }
+
+        await _db.SaveChangesAsync(ct);
     }
 
     private string Hash(string raw)
@@ -121,5 +146,56 @@ public sealed class RefreshTokenStore : IRefreshTokenStore
         RandomNumberGenerator.Fill(bytes);
         return Convert.ToBase64String(bytes)
             .Replace("+", "-").Replace("/", "_").TrimEnd('=');
+    }
+
+    public async Task<(Guid UserId, string Token, DateTime ExpiresAtUtc)> RotateAtomicAsync(string refreshToken, string? ip, string? userAgent, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        var oldHash = Hash(refreshToken);
+
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+        var old = await _db.RefreshTokens.FirstOrDefaultAsync(x => x.TokenHash == oldHash, ct);
+        if (old is null)
+            throw new UnauthorizedAccessException("Invalid refresh token.");
+
+
+        if (old.RevokedAtUtc is not null)
+        {
+            await RevokeFamilyInternalAsync(old.UserId, old.FamilyId, ip, ct);
+
+            await tx.CommitAsync(ct);
+
+            // return generic 401
+            throw new UnauthorizedAccessException("Unauthorized");
+        }
+
+
+        if (old.ExpiresAtUtc <= now)
+            throw new UnauthorizedAccessException("Invalid refresh token.");
+
+        var newRaw = GenerateRawToken();
+        var newEntity = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = old.UserId,
+            FamilyId = old.FamilyId,
+            TokenHash = Hash(newRaw),
+            CreatedAtUtc = now,
+            ExpiresAtUtc = now.AddDays(_refreshDays),
+            CreatedByIp = ip,
+            UserAgent = userAgent
+        };
+
+        _db.RefreshTokens.Add(newEntity);
+
+        old.RevokedAtUtc = now;
+        old.RevokedByIp = ip;
+        old.ReplacedByTokenId = newEntity.Id;
+
+        await _db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        return (old.UserId, newRaw, newEntity.ExpiresAtUtc);
     }
 }

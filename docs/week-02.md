@@ -13,10 +13,13 @@
 - Implemented short-lived JWT access tokens with issuer, audience, and signing key validation
 - Added secure refresh token system with hashed storage and server-side pepper
 - Implemented refresh token rotation with reuse detection and automatic revocation
+- Modeled refresh token families with replacement chains to support incident-wide revocation
+- Treated refresh token reuse as a security incident with full family invalidation
 - Introduced clean Application-layer auth use cases (Login, Refresh) with DTOs
 - Abstracted Identity behind Application interfaces (no Identity/EF leakage)
 - Added AuthController with /login and /refresh endpoints
 - Configured JWT authentication and authorization in WebApi pipeline
-- Updated exception handling to return proper HTTP 401 for invalid credentials
+- Ensured authentication errors avoid user enumeration (uniform 401 responses)
 - Applied database migration for RefreshTokens and verified behavior via Postman
 - Moved all secrets (JWT key, refresh pepper, connection string) to User Secrets
+

@@ -12,4 +12,5 @@ public interface IRefreshTokenStore
     Task<(string Token, DateTime ExpiresAtUtc)> IssueAsync(Guid userId, string? ip, string? userAgent, CancellationToken ct);
     Task RotateAsync(string refreshToken, string newRefreshToken, string? ip, CancellationToken ct);
     Task RevokeAllAsync(Guid userId, string reason, string? ip, CancellationToken ct);
+    Task<(Guid UserId, string Token, DateTime ExpiresAtUtc)> RotateAtomicAsync(string refreshToken, string? ip, string? userAgent, CancellationToken ct);
 }

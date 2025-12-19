@@ -33,6 +33,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             b.Property(x => x.CreatedAtUtc).IsRequired();
             b.Property(x => x.ExpiresAtUtc).IsRequired();
 
+            b.Property(x => x.FamilyId).IsRequired();
+            b.HasIndex(x => x.FamilyId);
+
             b.HasIndex(x => new { x.UserId, x.ExpiresAtUtc });
         });
     }

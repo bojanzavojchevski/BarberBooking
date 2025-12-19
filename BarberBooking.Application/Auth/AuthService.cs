@@ -41,16 +41,12 @@ public sealed class AuthService : IAuthService
 
     public async Task<AuthTokensDto> RefreshAsync(RefreshRequestDto request, ClientContextDto client, CancellationToken ct)
     {
-        var valid = await _refresh.ValidateAsync(request.RefreshToken, ct);
-        if (valid is null)
-            throw new UnauthorizedAccessException("Invalid refresh token.");
-
-        var userId = valid.Value.UserId;
-
-        // if token is stolen and is re-used, RotateAsync will detect and it will revoke acccess
-        var (newRefresh, newRefreshExp) = await _refresh.IssueAsync(userId, client.Ip, client.UserAgent, ct);
-        await _refresh.RotateAsync(request.RefreshToken, newRefresh, client.Ip, ct);
-
+        // Atomically: validate + reuse-detect + revoke old + issue new (same family)
+        var (userId, newRefresh, newRefreshExp) = await _refresh.RotateAtomicAsync(
+            request.RefreshToken,
+            client.Ip,
+            client.UserAgent,
+            ct);
 
         var (email, roles) = await GetEmailAndRoles(userId, ct);
         var (access, accessExp) = _jwt.CreateAccessToken(userId, email, roles);
