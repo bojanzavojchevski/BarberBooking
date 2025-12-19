@@ -2,8 +2,6 @@
 using BarberBooking.Infrastructure.Auth;
 using BarberBooking.Infrastructure.Identity;
 using BarberBooking.Infrastructure.Persistence;
-using BarberBookingApp.Infrastructure.Auth;
-using BarberBookingApp.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

@@ -3,7 +3,7 @@ using BarberBooking.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace BarberBookingApp.Infrastructure.Identity;
+namespace BarberBooking.Infrastructure.Identity;
 
 public sealed class UserAuthProvider : IUserAuthProvider
 {

@@ -1,14 +1,12 @@
 ﻿using BarberBooking.Application.Auth.Interfaces;
 using BarberBooking.Infrastructure.Auth;
 using BarberBooking.Infrastructure.Persistence;
-using BarberBooking.Application.Auth.Interfaces;
-using BarberBooking.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace BarberBookingApp.Infrastructure.Auth;
+namespace BarberBooking.Infrastructure.Auth;
 
 public sealed class RefreshTokenStore : IRefreshTokenStore
 {
