@@ -32,30 +32,28 @@ public sealed class AuthTests : IAsyncLifetime
 
         var cs = _pg.GetConnectionString();
 
+        // ✅ ова мора да е BEFORE WebApplicationFactory е креиран
         Environment.SetEnvironmentVariable("ConnectionStrings__Default", cs);
         Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", cs);
 
-        Environment.SetEnvironmentVariable("ConnectionStrings:Default", cs);
-        Environment.SetEnvironmentVariable("ConnectionStrings:DefaultConnection", cs);
-
         _factory = new WebApplicationFactory<Program>()
-    .WithWebHostBuilder(builder =>
-    {
-        builder.UseEnvironment("Testing");
-
-        builder.ConfigureAppConfiguration((ctx, cfg) =>
-        {
-            cfg.AddInMemoryCollection(new Dictionary<string, string?>
+            .WithWebHostBuilder(builder =>
             {
-                ["Jwt:Issuer"] = "bb",
-                ["Jwt:Audience"] = "bb",
-                ["Jwt:SigningKey"] = new string('x', 64),
-                ["Jwt:AccessTokenMinutes"] = "10",
-                ["RefreshTokens:Pepper"] = "test-pepper",
-                ["RefreshTokens:Days"] = "30",
+                builder.ConfigureAppConfiguration((ctx, cfg) =>
+                {
+                    cfg.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        // можеш да го оставиш и ова, ама ENV горе е “hard override”
+                        ["ConnectionStrings:Default"] = cs,
+                        ["Jwt:Issuer"] = "bb",
+                        ["Jwt:Audience"] = "bb",
+                        ["Jwt:SigningKey"] = new string('x', 64),
+                        ["Jwt:AccessTokenMinutes"] = "10",
+                        ["RefreshTokens:Pepper"] = "test-pepper",
+                        ["RefreshTokens:Days"] = "30",
+                    });
+                });
             });
-        });
-    });
 
         _client = _factory.CreateClient();
 
