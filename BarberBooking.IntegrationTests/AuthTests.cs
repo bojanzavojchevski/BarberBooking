@@ -30,37 +30,32 @@ public sealed class AuthTests : IAsyncLifetime
     {
         await _pg.StartAsync();
 
+        var cs = _pg.GetConnectionString();
+
+        Environment.SetEnvironmentVariable("ConnectionStrings__Default", cs);
+        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", cs);
+
+        Environment.SetEnvironmentVariable("ConnectionStrings:Default", cs);
+        Environment.SetEnvironmentVariable("ConnectionStrings:DefaultConnection", cs);
+
         _factory = new WebApplicationFactory<Program>()
-  .WithWebHostBuilder(builder =>
-  {
-      builder.UseEnvironment("Testing");
+    .WithWebHostBuilder(builder =>
+    {
+        builder.UseEnvironment("Testing");
 
-      builder.ConfigureAppConfiguration((ctx, cfg) =>
-      {
-          cfg.AddInMemoryCollection(new Dictionary<string, string?>
-          {
-              ["ConnectionStrings:Default"] = _pg.GetConnectionString(),
-              ["ConnectionStrings:DefaultConnection"] = _pg.GetConnectionString(),
-
-              ["Jwt:Issuer"] = "bb",
-              ["Jwt:Audience"] = "bb",
-              ["Jwt:SigningKey"] = new string('x', 64),
-              ["Jwt:AccessTokenMinutes"] = "10",
-              ["RefreshTokens:Pepper"] = "test-pepper",
-              ["RefreshTokens:Days"] = "30",
-          });
-      });
-
-      builder.ConfigureServices(services =>
-      {
-          var dbCtx = services.SingleOrDefault(d =>
-              d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-          if (dbCtx is not null) services.Remove(dbCtx);
-
-          services.AddDbContext<AppDbContext>(o =>
-              o.UseNpgsql(_pg.GetConnectionString()));
-      });
-  });
+        builder.ConfigureAppConfiguration((ctx, cfg) =>
+        {
+            cfg.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:Issuer"] = "bb",
+                ["Jwt:Audience"] = "bb",
+                ["Jwt:SigningKey"] = new string('x', 64),
+                ["Jwt:AccessTokenMinutes"] = "10",
+                ["RefreshTokens:Pepper"] = "test-pepper",
+                ["RefreshTokens:Days"] = "30",
+            });
+        });
+    });
 
         _client = _factory.CreateClient();
 

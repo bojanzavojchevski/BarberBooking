@@ -16,8 +16,12 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
-        var cs = config.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("Missing connection string: Default");
+        var cs =
+            config.GetConnectionString("Default") ??
+            config.GetConnectionString("DefaultConnection");
+
+        if (string.IsNullOrWhiteSpace(cs))
+            throw new InvalidOperationException("Missing connection string: Default");
 
         services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(cs));
 
