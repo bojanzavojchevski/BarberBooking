@@ -1,4 +1,5 @@
-﻿using BarberBooking.Application.Auth.Interfaces;
+﻿using BarberBooking.Application.Auth;
+using BarberBooking.Application.Auth.Interfaces;
 using BarberBooking.Infrastructure.Auth;
 using BarberBooking.Infrastructure.Identity;
 using BarberBooking.Infrastructure.Persistence;
@@ -36,6 +37,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
         services.AddScoped<IUserAuthProvider, UserAuthProvider>();
+
+        services.AddSingleton<ISecurityEventLogger, SecurityEventLogger>();
 
 
         return services;

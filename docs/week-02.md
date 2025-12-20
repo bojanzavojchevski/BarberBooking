@@ -23,3 +23,21 @@
 - Applied database migration for RefreshTokens and verified behavior via Postman
 - Moved all secrets (JWT key, refresh pepper, connection string) to User Secrets
 
+---
+
+## Day 3 — Refresh Token Rotation, Reuse Detection & Integration Tests
+- Finalized refresh token rotation with atomic database transactions
+- Implemented refresh token “family” concept for session-level revocation
+- Added reuse detection:
+  - Reusing a revoked or replaced refresh token is treated as a security incident
+  - Entire token family is revoked immediately
+  - Generic 401 response returned (no user or token leakage)
+- Ensured all refresh tokens are stored hashed with a server-side pepper
+- Added PostgreSQL-backed integration tests using Testcontainers:
+  - Verified refresh rotation revokes old tokens and links replacements
+  - Verified reuse attacks revoke the entire token family
+  - Verified expired/invalid refresh tokens return generic 401 responses
+- Ensured test isolation via database reset between security-sensitive test cases
+- Proved end-to-end behavior through real HTTP calls and real PostgreSQL (no InMemory providers)
+
+

@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
 using System.Text;
 
+using Microsoft.AspNetCore.Http;
+
 namespace BarberBooking.Infrastructure.Auth;
 
 public sealed class RefreshTokenStore : IRefreshTokenStore
@@ -14,11 +16,14 @@ public sealed class RefreshTokenStore : IRefreshTokenStore
     private readonly string _pepper;
     private readonly int _refreshDays;
 
-    public RefreshTokenStore(AppDbContext db, IConfiguration cfg)
+    private readonly ISecurityEventLogger _sec;
+    public RefreshTokenStore(AppDbContext db, IConfiguration cfg, ISecurityEventLogger sec)
     {
+        _sec = sec;
         _db = db;
         _pepper = cfg["RefreshTokens:Pepper"] ?? throw new InvalidOperationException("RefreshTokens:Pepper missing");
         _refreshDays = int.TryParse(cfg["RefreshTokens:Days"], out var d) ? d : 30;
+
     }
 
     public async Task<(Guid UserId, DateTime ExpiresAtUtc)?> ValidateAsync(string refreshToken, CancellationToken ct)
@@ -165,6 +170,8 @@ public sealed class RefreshTokenStore : IRefreshTokenStore
             await RevokeFamilyInternalAsync(old.UserId, old.FamilyId, ip, ct);
 
             await tx.CommitAsync(ct);
+
+            _sec.RefreshTokenReuseDetected(old.UserId, old.FamilyId, ip, userAgent, traceId: "n/a");
 
             // return generic 401
             throw new UnauthorizedAccessException("Unauthorized");

@@ -88,3 +88,6 @@ app.MapControllers();
 await RoleSeeder.SeedAsync(app.Services);
 
 app.Run();
+
+
+public partial class Program { }

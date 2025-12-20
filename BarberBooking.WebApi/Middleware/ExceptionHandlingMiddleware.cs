@@ -31,7 +31,7 @@ public sealed class ExceptionHandlingMiddleware
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/problem+json";

@@ -13,9 +13,12 @@ public class Appointment
     public Guid Id { get; set; }
     public Guid BarberId { get; set; }
     public Guid CustomerId { get; set; }
-    public TimeRange TimeRange { get; set; }
+    public required TimeRange TimeRange { get; set; }
 
-    private Appointment() { }
+
+    Appointment()
+    {
+    }
 
     public static Appointment Create(
         Guid barberId,

@@ -1,4 +1,4 @@
-﻿namespace BarberBooking.Tests;
+﻿namespace BarberBooking.IntegrationTests;
 
 public class UnitTest1
 {

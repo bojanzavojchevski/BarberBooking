@@ -12,12 +12,16 @@ public sealed record TimeRange
     public DateTimeOffset StartUtc { get; }
     public DateTimeOffset EndUtc { get; }
 
+
+
     public TimeRange(DateTimeOffset startUtc, DateTimeOffset endUtc)
     {
+
         if (endUtc <= startUtc)
             throw new DomainException("End must be after start");
 
         StartUtc = startUtc;
         EndUtc = endUtc;
+
     }
 }
