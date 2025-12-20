@@ -37,6 +37,7 @@ public sealed class AuthTests : IAsyncLifetime
                     cfg.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:Default"] = _pg.GetConnectionString(),
+                        ["ConnectionStrings:DefaultConnection"] = _pg.GetConnectionString(),
                         ["Jwt:Issuer"] = "bb",
                         ["Jwt:Audience"] = "bb",
                         ["Jwt:SigningKey"] = new string('x', 64),
