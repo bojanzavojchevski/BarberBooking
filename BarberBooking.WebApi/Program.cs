@@ -4,11 +4,11 @@ using BarberBooking.Infrastructure.DependencyInjection;
 using BarberBooking.Infrastructure.Identity;
 using BarberBooking.Infrastructure.Persistence;
 using BarberBooking.WebApi.Middleware;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
@@ -59,10 +59,63 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDataProtection();
 
+// Rate Limiter
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.ForwardLimit = 1;
+});
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync("""{"error":"too_many_requests"}""", token);
+    };
+
+    // /api/auth/login
+    options.AddPolicy("auth-login-ip", httpContext =>
+    {
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ip,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+
+    // /api/auth/refresh
+    options.AddPolicy("auth-refresh-ip", httpContext =>
+    {
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ip,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+});
+
+
+
 
 
 
 var app = builder.Build();
+
+
+app.UseForwardedHeaders();
+app.UseRateLimiter();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -97,8 +150,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-await RoleSeeder.SeedAsync(app.Services);
 
 app.Run();
 

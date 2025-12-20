@@ -1,6 +1,8 @@
 ﻿using BarberBooking.Application.Auth.DTOs;
 using BarberBooking.Application.Auth.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+
 
 namespace BarberBooking.WebApi.Controllers;
 
@@ -13,6 +15,7 @@ public sealed class AuthController : ControllerBase
     public AuthController(IAuthService auth) => _auth = auth;
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth-login-ip")]
     public async Task<ActionResult<AuthTokensDto>> Login([FromBody] LoginRequestDto dto, CancellationToken ct)
     {
         var client = new ClientContextDto(
@@ -24,6 +27,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
+    [EnableRateLimiting("auth-refresh-ip")]
     public async Task<ActionResult<AuthTokensDto>> Refresh([FromBody] RefreshRequestDto dto, CancellationToken ct)
     {
         var client = new ClientContextDto(

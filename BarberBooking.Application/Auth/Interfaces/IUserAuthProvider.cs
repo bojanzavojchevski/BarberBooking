@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BarberBooking.Application.Auth.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +13,7 @@ public interface IUserAuthProvider
     Task<bool> CheckPasswordAsync(Guid userId, string password, CancellationToken ct);
     Task<IReadOnlyCollection<string>> GetRolesAsync(Guid userId, CancellationToken ct);
     Task<string?> GetEmailByIdAsync(Guid userId, CancellationToken ct);
+    Task<PasswordCheckResultDto> CheckPasswordWithLockoutAsync(Guid userId, string password, CancellationToken ct);
+
 
 }

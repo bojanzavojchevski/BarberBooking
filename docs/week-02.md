@@ -40,4 +40,19 @@
 - Ensured test isolation via database reset between security-sensitive test cases
 - Proved end-to-end behavior through real HTTP calls and real PostgreSQL (no InMemory providers)
 
+---
+
+## Day 4 — Rate Limiting & Brute Force Protection
+
+- Added IP-based rate limiting for authentication endpoints using ASP.NET Core built-in RateLimiter middleware
+- Applied limits only to auth endpoints (no global rate limiting):
+  - `/api/auth/login` → 5 requests per minute per IP
+  - `/api/auth/refresh` → 20 requests per minute per IP
+- Returned generic `429 Too Many Requests` responses without leaking security details
+- Verified that health checks, Swagger, and other endpoints are unaffected
+- Implemented per-user brute force protection via ASP.NET Identity lockout:
+  - Account lockout after 5 failed login attempts
+  - Lockout duration set to 15 minutes
+- Ensured uniform authentication errors to prevent account enumeration
+- Combined IP rate limiting and user lockout for layered (defense-in-depth) security
 

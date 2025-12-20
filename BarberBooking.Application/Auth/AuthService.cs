@@ -14,6 +14,7 @@ public sealed class AuthService : IAuthService
     private readonly IJwtTokenGenerator _jwt;
     private readonly IRefreshTokenStore _refresh;
 
+
     public AuthService(IUserAuthProvider users, IJwtTokenGenerator jwt, IRefreshTokenStore refresh)
     {
         _users = users;
@@ -27,8 +28,8 @@ public sealed class AuthService : IAuthService
         if (found is null)
             throw new UnauthorizedAccessException("Invalid credentials.");
 
-        var ok = await _users.CheckPasswordAsync(found.Value.UserId, request.Password, ct);
-        if (!ok)
+        var pwd = await _users.CheckPasswordWithLockoutAsync(found.Value.UserId, request.Password, ct);
+        if (!pwd.Succeeded || pwd.IsLockedOut)
             throw new UnauthorizedAccessException("Invalid credentials.");
 
         var roles = await _users.GetRolesAsync(found.Value.UserId, ct);
