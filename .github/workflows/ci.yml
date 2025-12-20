@@ -23,15 +23,12 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore -c Release
-
-      - name: Test (non-integration)
-        run: dotnet test -c Release --no-build --filter "IsIntegrationTest!=true"
+        run: dotnet build -c Release --no-restore
 
       - name: Test (integration)
         run: dotnet test ./BarberBooking.IntegrationTests/BarberBooking.IntegrationTests.csproj -c Release --no-build
         env:
-          ConnectionStrings__Default: "placeholder"
+          DOCKER_HOST: unix:///var/run/docker.sock
 
       - name: Install dotnet-format
         run: dotnet tool install -g dotnet-format

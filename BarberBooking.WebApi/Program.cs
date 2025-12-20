@@ -1,18 +1,21 @@
-using BarberBooking.Infrastructure.Persistence;
+using BarberBooking.Application.Auth;
+using BarberBooking.Application.Auth.Interfaces;
 using BarberBooking.Infrastructure.DependencyInjection;
-using BarberBooking.WebApi.Middleware;
-using Serilog;
 using BarberBooking.Infrastructure.Identity;
+using BarberBooking.Infrastructure.Persistence;
+using BarberBooking.WebApi.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using BarberBooking.Application.Auth.Interfaces;
-using BarberBooking.Application.Auth;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .CreateLogger();
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +64,14 @@ builder.Services.AddDataProtection();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
+
+await RoleSeeder.SeedAsync(app.Services);
+
 // Initialize Serilog 
 app.UseSerilogRequestLogging();
 
@@ -70,6 +81,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
 
 //
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -88,6 +101,8 @@ app.MapControllers();
 await RoleSeeder.SeedAsync(app.Services);
 
 app.Run();
+
+
 
 
 public partial class Program { }
