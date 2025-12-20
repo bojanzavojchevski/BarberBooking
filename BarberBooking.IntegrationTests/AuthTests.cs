@@ -13,7 +13,7 @@ using Testcontainers.PostgreSql;
 
 public sealed class AuthTests : IAsyncLifetime
 {
-    
+
 
     private readonly PostgreSqlContainer _pg = new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
