@@ -1,14 +1,15 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using BarberBooking.Application.Auth.DTOs;
+﻿using BarberBooking.Application.Auth.DTOs;
+using BarberBooking.Infrastructure.Identity;
+using BarberBooking.Infrastructure.Persistence;
 using DotNet.Testcontainers;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using BarberBooking.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Identity;
-using BarberBooking.Infrastructure.Identity;
+using System.Net;
+using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 
 public sealed class AuthTests : IAsyncLifetime
@@ -30,23 +31,36 @@ public sealed class AuthTests : IAsyncLifetime
         await _pg.StartAsync();
 
         _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureAppConfiguration((ctx, cfg) =>
-                {
-                    cfg.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ConnectionStrings:Default"] = _pg.GetConnectionString(),
-                        ["ConnectionStrings:DefaultConnection"] = _pg.GetConnectionString(),
-                        ["Jwt:Issuer"] = "bb",
-                        ["Jwt:Audience"] = "bb",
-                        ["Jwt:SigningKey"] = new string('x', 64),
-                        ["Jwt:AccessTokenMinutes"] = "10",
-                        ["RefreshTokens:Pepper"] = "test-pepper",
-                        ["RefreshTokens:Days"] = "30",
-                    });
-                });
-            });
+  .WithWebHostBuilder(builder =>
+  {
+      builder.UseEnvironment("Testing");
+
+      builder.ConfigureAppConfiguration((ctx, cfg) =>
+      {
+          cfg.AddInMemoryCollection(new Dictionary<string, string?>
+          {
+              ["ConnectionStrings:Default"] = _pg.GetConnectionString(),
+              ["ConnectionStrings:DefaultConnection"] = _pg.GetConnectionString(),
+
+              ["Jwt:Issuer"] = "bb",
+              ["Jwt:Audience"] = "bb",
+              ["Jwt:SigningKey"] = new string('x', 64),
+              ["Jwt:AccessTokenMinutes"] = "10",
+              ["RefreshTokens:Pepper"] = "test-pepper",
+              ["RefreshTokens:Days"] = "30",
+          });
+      });
+
+      builder.ConfigureServices(services =>
+      {
+          var dbCtx = services.SingleOrDefault(d =>
+              d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+          if (dbCtx is not null) services.Remove(dbCtx);
+
+          services.AddDbContext<AppDbContext>(o =>
+              o.UseNpgsql(_pg.GetConnectionString()));
+      });
+  });
 
         _client = _factory.CreateClient();
 
