@@ -44,7 +44,19 @@ builder.Services.AddAuthentication()
             ClockSkew = TimeSpan.FromSeconds(30)
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // strict role-only policies
+    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+    options.AddPolicy("OwnerOnly", p => p.RequireRole("Owner"));
+    options.AddPolicy("BarberOnly", p => p.RequireRole("Barber"));
+    options.AddPolicy("CustomerOnly", p => p.RequireRole("Customer"));
+
+    // least-privilege
+    options.AddPolicy("CanManageShops", p => p.RequireRole("Admin", "Owner"));
+    options.AddPolicy("CanManageAppointments", p => p.RequireRole("Admin", "Barber"));
+    options.AddPolicy("CanBook", p => p.RequireRole("Admin", "Customer"));
+});
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 

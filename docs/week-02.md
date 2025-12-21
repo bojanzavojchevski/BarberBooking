@@ -74,3 +74,21 @@
   - Application: identity flow interfaces and DTOs
   - WebApi: endpoint wiring only
 - Verified all flows end-to-end via Postman and application logs
+
+---
+
+## Day 6 — Authorization Policies & Least Privilege
+
+- Defined role-based authorization policies using ASP.NET Core policy system
+- Introduced clear, capability-driven policies:
+  - `AdminOnly`, `OwnerOnly`, `BarberOnly`, `CustomerOnly`
+  - `CanManageShops`, `CanManageAppointments`, `CanBook`
+- Enforced least-privilege access by mapping roles to responsibilities
+- Applied `[Authorize(Policy = "...")]` instead of raw role checks
+- Kept all authorization logic confined to the WebApi layer
+- Verified policy behavior end-to-end via Postman:
+  - 401 for unauthenticated requests
+  - 403 for insufficient roles
+  - 200 for valid role-policy combinations
+- Confirmed JWT role claims and Identity role assignments are correctly enforced
+- Established a scalable foundation for future resource-based and claims-based authorization
