@@ -1,5 +1,10 @@
 # 📘 Week 02 — Identity & Security Baseline
 
+**Goal:** Establish a production-grade authentication and authorization baseline.
+This week focuses on secure identity management, token-based authentication,
+defense-in-depth security mechanisms, and strict separation of concerns
+using Onion/Clean Architecture principles.
+
 ## Day 1 — Identity Wiring
 - Integrated ASP.NET Core Identity with EF Core and PostgreSQL
 - Introduced ApplicationUser with GUID-based keys
@@ -92,3 +97,11 @@
   - 200 for valid role-policy combinations
 - Confirmed JWT role claims and Identity role assignments are correctly enforced
 - Established a scalable foundation for future resource-based and claims-based authorization
+
+---
+
+### Scope Notes
+Week 2 intentionally focuses only on identity, authentication, and authorization.
+Business-domain logic such as scheduling, availability, resource ownership,
+and concurrency control are addressed in subsequent weeks.
+
