@@ -47,6 +47,11 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<ISecurityEventLogger, SecurityEventLogger>();
 
+        services.Configure<PublicUrlOptions>(config.GetSection("PublicUrl"));
+
+        services.AddSingleton<IEmailSender, LogEmailSender>();
+        services.AddScoped<IIdentityFlowsService, IdentityFlowsService>();
+
 
         return services;
     }

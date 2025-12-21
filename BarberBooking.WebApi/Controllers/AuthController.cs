@@ -11,8 +11,13 @@ namespace BarberBooking.WebApi.Controllers;
 public sealed class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;
+    private readonly IIdentityFlowsService _identityFlows;
 
-    public AuthController(IAuthService auth) => _auth = auth;
+    public AuthController(IAuthService auth, IIdentityFlowsService identityFlows)
+    {
+        _auth = auth;
+        _identityFlows = identityFlows;
+    }
 
     [HttpPost("login")]
     [EnableRateLimiting("auth-login-ip")]
@@ -37,4 +42,38 @@ public sealed class AuthController : ControllerBase
 
         return Ok(await _auth.RefreshAsync(dto, client, ct));
     }
+
+    [HttpPost("email/confirmation/request")]
+    public async Task<IActionResult> RequestEmailConfirmation([FromBody] EmailConfirmationRequestDto dto, CancellationToken ct)
+    {
+        await _identityFlows.RequestEmailConfirmationAsync(dto.Email, ct);
+        return Ok(new { message = "If an account exists, a confirmation link was generated." });
+    }
+
+    [HttpPost("email/confirm")]
+    public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailDto dto, CancellationToken ct)
+    {
+        var ok = await _identityFlows.ConfirmEmailAsync(dto.UserId, dto.Token, ct);
+        return ok ? Ok(new { message = "Email confirmed." })
+                  : BadRequest(new { message = "Invalid token." });
+    }
+
+    [HttpPost("password/forgot")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto, CancellationToken ct)
+    {
+        await _identityFlows.RequestPasswordResetAsync(dto.Email, ct);
+        return Ok(new { message = "If an account exists, a reset link was generated." });
+    }
+
+    [HttpPost("password/reset")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 12)
+            return BadRequest(new { message = "Invalid token." }); // keep generic outwardly
+
+        var ok = await _identityFlows.ResetPasswordAsync(dto.Email, dto.Token, dto.NewPassword, ct);
+        return ok ? Ok(new { message = "Password reset successful." })
+                  : BadRequest(new { message = "Invalid token." });
+    }
+
 }

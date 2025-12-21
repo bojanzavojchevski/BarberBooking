@@ -14,6 +14,4 @@ public interface IUserAuthProvider
     Task<IReadOnlyCollection<string>> GetRolesAsync(Guid userId, CancellationToken ct);
     Task<string?> GetEmailByIdAsync(Guid userId, CancellationToken ct);
     Task<PasswordCheckResultDto> CheckPasswordWithLockoutAsync(Guid userId, string password, CancellationToken ct);
-
-
 }

@@ -56,3 +56,21 @@
 - Ensured uniform authentication errors to prevent account enumeration
 - Combined IP rate limiting and user lockout for layered (defense-in-depth) security
 
+---
+
+## Day 5 — Email Confirmation & Password Reset Flows
+
+- Implemented production-ready email confirmation flow using ASP.NET Core Identity tokens
+- Added non-enumerable email confirmation request endpoint
+- Added email confirmation endpoint (userId + token)
+- Simulated email delivery via logging abstraction (no real SMTP)
+- Implemented secure password reset flow:
+  - Forgot password endpoint with non-enumerable responses
+  - Password reset endpoint using Identity reset tokens
+- Enforced Identity password policy during reset
+- Returned generic error responses to avoid leaking token or password validity
+- Preserved strict Onion/Clean Architecture boundaries:
+  - Infrastructure: Identity token generation, validation, and email simulation
+  - Application: identity flow interfaces and DTOs
+  - WebApi: endpoint wiring only
+- Verified all flows end-to-end via Postman and application logs
