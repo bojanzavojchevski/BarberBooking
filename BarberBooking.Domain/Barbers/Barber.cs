@@ -21,7 +21,7 @@ public sealed class Barber : AuditableEntity, ISoftDeletable
     public DateTimeOffset? DeletedAtUtc { get; private set; }
     public Guid? DeletedByUserId { get; private set; }
 
-    private Barber() { } 
+    private Barber() { }
 
     public Barber(Guid shopId, string displayName, string? bio)
     {

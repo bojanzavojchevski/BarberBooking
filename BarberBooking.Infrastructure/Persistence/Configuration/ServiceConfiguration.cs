@@ -23,7 +23,7 @@ public sealed class ServiceConfiguration : IEntityTypeConfiguration<Service>
         b.Property(x => x.DurationMinutes).IsRequired();
         b.Property(x => x.IsActive).IsRequired();
 
-        
+
         b.Property(x => x.Price)
             .HasConversion(
             v => v.Amount,

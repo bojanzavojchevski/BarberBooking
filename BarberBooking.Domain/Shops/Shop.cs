@@ -6,7 +6,7 @@ public sealed class Shop : AuditableEntity, ISoftDeletable
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
 
-    public Guid OwnerUserId {  get; private set; }
+    public Guid OwnerUserId { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public string Slug { get; private set; } = string.Empty;
 
