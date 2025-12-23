@@ -21,7 +21,7 @@ public sealed class CreateMyShopUseCase
         _uow = uow;
     }
 
-    public async Task<ShopDto> ExecuteAsync(CreateMyShopRequest request,  CancellationToken ct = default)
+    public async Task<ShopDto> ExecuteAsync(CreateMyShopRequest request, CancellationToken ct = default)
     {
         var ownerId = _currentUser.UserId;
 

@@ -4,6 +4,7 @@ using System.Security.Claims;
 
 
 namespace BarberBooking.WebApi.Auth;
+
 public class CurrentUser : ICurrentUser
 {
     private readonly IHttpContextAccessor _http;
