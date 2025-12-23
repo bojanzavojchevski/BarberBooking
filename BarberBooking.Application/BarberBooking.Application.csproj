@@ -11,10 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
     <Folder Include="DTOs\" />
     <Folder Include="Behaviors\" />
-    <Folder Include="UseCases\" />
   </ItemGroup>
 
   <ItemGroup>

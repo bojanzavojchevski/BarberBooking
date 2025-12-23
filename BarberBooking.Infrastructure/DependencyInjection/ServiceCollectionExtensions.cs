@@ -1,8 +1,10 @@
 ﻿using BarberBooking.Application.Auth;
 using BarberBooking.Application.Auth.Interfaces;
+using BarberBooking.Application.Interfaces;
 using BarberBooking.Infrastructure.Auth;
 using BarberBooking.Infrastructure.Identity;
 using BarberBooking.Infrastructure.Persistence;
+using BarberBooking.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -51,6 +53,9 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IEmailSender, LogEmailSender>();
         services.AddScoped<IIdentityFlowsService, IdentityFlowsService>();
+
+        services.AddScoped<IShopRepository, ShopRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
         return services;

@@ -1,13 +1,17 @@
 using BarberBooking.Application.Auth;
 using BarberBooking.Application.Auth.Interfaces;
+using BarberBooking.Application.Interfaces;
+using BarberBooking.Application.UseCases.Shops;
 using BarberBooking.Infrastructure.DependencyInjection;
 using BarberBooking.Infrastructure.Identity;
 using BarberBooking.Infrastructure.Persistence;
+using BarberBooking.WebApi.Auth;
 using BarberBooking.WebApi.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.EntityFrameworkCore;
-using Serilog;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using System.Threading.RateLimiting;
 
 Log.Logger = new LoggerConfiguration()
@@ -69,6 +73,8 @@ builder.Services.AddHealthChecks()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+
 builder.Services.AddDataProtection();
 
 // Rate Limiter
@@ -118,6 +124,10 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+
+builder.Services.AddScoped<CreateMyShopUseCase>();
 
 
 

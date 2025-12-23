@@ -41,3 +41,39 @@ No scheduling or booking logic is introduced.
   - No EF Core or ASP.NET dependencies in Domain
   - No business logic in controllers
   - Infrastructure concerns isolated to persistence layer
+
+---
+
+## Day 2 — Ownership Write Path (Create My Shop)
+
+- Introduced ownership-aware write use case:
+  - `CreateMyShopUseCase` in Application layer
+- Enforced business rule:
+  - A single owner can create **only one shop**
+- Implemented Application-layer abstractions:
+  - `IShopRepository`
+  - `IUnitOfWork`
+  - `ICurrentUser` (identity abstraction, no HTTP/JWT dependency)
+- Implemented Infrastructure persistence:
+  - `ShopRepository` using EF Core
+  - `UnitOfWork` for transactional consistency
+- Wired ownership resolution:
+  - Owner identity resolved via `ICurrentUser`
+  - No direct access to `HttpContext` outside WebApi
+- Added Owner-scoped API endpoint:
+  - `POST /api/owner/shop`
+  - Protected with `OwnerOnly` authorization policy
+- Ensured correct authorization behavior:
+  - Owner role → allowed
+  - Non-owner role → `403 Forbidden`
+  - Unauthenticated → `401 Unauthorized`
+- Added conflict handling:
+  - Attempting to create a second shop → `409 Conflict`
+- Verified full end-to-end behavior via Postman:
+  - JWT authentication
+  - Role-based authorization
+  - Correct persistence and response DTO mapping
+- Preserved strict Clean/Onion Architecture boundaries:
+  - Controllers delegate to use cases only
+  - No EF Core or Identity leakage into Application or Domain
+
