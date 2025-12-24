@@ -38,7 +38,7 @@ public sealed class UpdateServiceUseCase
 
         // uniqueness check
         var normalized = request.Name.Trim().ToUpperInvariant();
-        if(!string.Equals(service.Name.Trim().ToUpperInvariant(), normalized, StringComparison.Ordinal))
+        if (!string.Equals(service.Name.Trim().ToUpperInvariant(), normalized, StringComparison.Ordinal))
         {
             var exists = await _services.ExistsByNormalizedNameAsync(shop.Id, normalized, ct);
             if (exists) throw new InvalidOperationException("service_name_taken");
