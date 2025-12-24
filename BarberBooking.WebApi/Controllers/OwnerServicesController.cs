@@ -23,7 +23,7 @@ public sealed class OwnerServicesController : ControllerBase
         }
         catch (InvalidOperationException ex) when (ex.Message == "owner_has_no_shop")
         {
-            return BadRequest(new { error = "owner_has_no_shop" });
+            return NotFound(new { error = "owner_has_no_shop" });
         }
         catch (InvalidOperationException ex) when (ex.Message == "service_name_taken")
         {
@@ -32,6 +32,38 @@ public sealed class OwnerServicesController : ControllerBase
         catch (InvalidOperationException ex) when (ex.Message == "invalid_service_name")
         {
             return BadRequest(new { error = "invalid_service_name" });
+        }
+    }
+
+
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<ServiceSummaryDto>>> List(
+        [FromServices] ListMyServicesUseCase useCase,
+        CancellationToken ct)
+        => Ok(await useCase.ExecuteAsync(ct));
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ServiceDto>> Update(
+        Guid id,
+        [FromBody] UpdateServiceRequest request,
+        [FromServices] UpdateServiceUseCase useCase,
+        CancellationToken ct)
+    {
+        try
+        {
+            return Ok(await useCase.ExecuteAsync(id, request, ct));
+        }
+        catch (InvalidOperationException ex) when (ex.Message is "owner_has_no_shop")
+        {
+            return NotFound(new { error = "owner_has_no_shop" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message is "service_not_found")
+        {
+            return NotFound(new { error = "service_not_found" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message is "service_name_taken")
+        {
+            return Conflict(new { error = "service_name_taken" });
         }
     }
 }

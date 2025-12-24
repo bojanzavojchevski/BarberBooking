@@ -109,4 +109,29 @@ No scheduling or booking logic is introduced.
   - No EF Core or Identity dependencies in Application
   - Controllers delegate exclusively to use cases
 
+---
+
+## Day 4 — Owner Service Management (Read & Update)
+
+- Implemented owner-scoped service management endpoints
+- Added read path for listing services belonging to the owner’s shop:
+  - `GET /api/owner/services`
+- Implemented update flow for existing services:
+  - `PUT /api/owner/services/{id}`
+  - Supports updating name, duration, and price
+- Enforced strict ownership rules in Application layer:
+  - Services must belong to the owner’s shop
+  - Cross-tenant access returns `404` without leaking data
+- Preserved service name uniqueness per shop (case-insensitive):
+  - Duplicate updates return `409 Conflict`
+- Ensured correct HTTP semantics:
+  - `200 OK` on success
+  - `404 NotFound` for missing shop or service
+  - `409 Conflict` for duplicate service names
+- Verified full end-to-end behavior via Postman using JWT authentication
+- Maintained strict Clean/Onion Architecture boundaries:
+  - Controllers delegate to use cases only
+  - No EF Core or Identity leakage into Application layer
+
+
 

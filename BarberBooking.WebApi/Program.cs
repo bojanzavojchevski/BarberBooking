@@ -131,6 +131,8 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<CreateMyShopUseCase>();
 builder.Services.AddScoped<GetMyShopUseCase>();
 builder.Services.AddScoped<CreateServiceUseCase>();
+builder.Services.AddScoped<ListMyServicesUseCase>();
+builder.Services.AddScoped<UpdateServiceUseCase>();
 
 
 
