@@ -66,4 +66,44 @@ public sealed class OwnerServicesController : ControllerBase
             return Conflict(new { error = "service_name_taken" });
         }
     }
+
+    [HttpPatch("{id:guid}/active")]
+    public async Task<IActionResult> SetActive(
+    Guid id,
+    [FromBody] SetServiceActiveRequest request,
+    [FromServices] SetServiceActiveUseCase useCase,
+    CancellationToken ct)
+    {
+        try
+        {
+            await useCase.ExecuteAsync(id, request.IsActive, ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex) when (ex.Message is "owner_has_no_shop" or "service_not_found")
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        [FromServices] DeleteServiceUseCase useCase,
+        CancellationToken ct)
+    {
+        try
+        {
+            await useCase.ExecuteAsync(id, ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex) when (ex.Message is "owner_has_no_shop" or "service_not_found")
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
+
+
+
+
+
 }

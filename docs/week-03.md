@@ -111,27 +111,32 @@ No scheduling or booking logic is introduced.
 
 ---
 
-## Day 4 — Owner Service Management (Read & Update)
+## Day 4 — Owner Service Management (Read, Update, Toggle, Delete)
 
-- Implemented owner-scoped service management endpoints
-- Added read path for listing services belonging to the owner’s shop:
+- Completed owner-scoped service management capabilities
+- Implemented service listing for owner’s shop:
   - `GET /api/owner/services`
-- Implemented update flow for existing services:
+- Added update flow for existing services:
   - `PUT /api/owner/services/{id}`
   - Supports updating name, duration, and price
-- Enforced strict ownership rules in Application layer:
+- Enforced strict ownership boundaries in Application layer:
   - Services must belong to the owner’s shop
-  - Cross-tenant access returns `404` without leaking data
-- Preserved service name uniqueness per shop (case-insensitive):
-  - Duplicate updates return `409 Conflict`
-- Ensured correct HTTP semantics:
-  - `200 OK` on success
-  - `404 NotFound` for missing shop or service
-  - `409 Conflict` for duplicate service names
+  - Cross-tenant access safely returns `404 Not Found`
+- Preserved case-insensitive uniqueness during updates:
+  - Duplicate service names return `409 Conflict`
+- Implemented service activation lifecycle:
+  - `PATCH /api/owner/services/{id}/active`
+  - Enables enabling/disabling services without deletion
+- Implemented soft deletion for services:
+  - `DELETE /api/owner/services/{id}`
+  - Deleted services are hidden via global query filters
+- Ensured correct HTTP semantics across all endpoints:
+  - `200 OK`, `204 No Content`, `404 Not Found`, `409 Conflict`
 - Verified full end-to-end behavior via Postman using JWT authentication
 - Maintained strict Clean/Onion Architecture boundaries:
-  - Controllers delegate to use cases only
-  - No EF Core or Identity leakage into Application layer
+  - No EF Core or HTTP dependencies in Application layer
+  - Controllers remain thin and delegate to use cases only
+
 
 
 

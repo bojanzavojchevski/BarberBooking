@@ -133,6 +133,8 @@ builder.Services.AddScoped<GetMyShopUseCase>();
 builder.Services.AddScoped<CreateServiceUseCase>();
 builder.Services.AddScoped<ListMyServicesUseCase>();
 builder.Services.AddScoped<UpdateServiceUseCase>();
+builder.Services.AddScoped<SetServiceActiveUseCase>();
+builder.Services.AddScoped<DeleteServiceUseCase>();
 
 
 
