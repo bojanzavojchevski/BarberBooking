@@ -1,6 +1,7 @@
 using BarberBooking.Application.Auth;
 using BarberBooking.Application.Auth.Interfaces;
 using BarberBooking.Application.Interfaces;
+using BarberBooking.Application.UseCases.Services;
 using BarberBooking.Application.UseCases.Shops;
 using BarberBooking.Infrastructure.DependencyInjection;
 using BarberBooking.Infrastructure.Identity;
@@ -129,6 +130,7 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 
 builder.Services.AddScoped<CreateMyShopUseCase>();
 builder.Services.AddScoped<GetMyShopUseCase>();
+builder.Services.AddScoped<CreateServiceUseCase>();
 
 
 

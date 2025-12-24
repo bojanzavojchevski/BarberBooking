@@ -77,3 +77,36 @@ No scheduling or booking logic is introduced.
   - Controllers delegate to use cases only
   - No EF Core or Identity leakage into Application or Domain
 
+---
+
+## Day 3 — Owner Service Management (Create Service)
+
+- Introduced owner-managed service creation flow scoped to a shop
+- Implemented service creation use case in the Application layer:
+  - `CreateServiceUseCase`
+  - Explicit request/response contracts (`CreateServiceRequest`, `ServiceDto`)
+- Enforced critical business rules:
+  - Services must belong to the owner’s shop
+  - Service names must be unique per shop (case-insensitive)
+  - Duration and pricing validated via domain invariants
+- Added persistence abstraction:
+  - `IServiceRepository` in Application
+  - EF Core–based `ServiceRepository` in Infrastructure
+- Implemented normalized-name uniqueness checks prior to persistence
+- Exposed owner-only API endpoint:
+  - `POST /api/owner/services`
+  - Protected via `OwnerOnly` authorization policy
+- Ensured correct HTTP semantics:
+  - `200 OK` on success
+  - `409 Conflict` on duplicate service name
+  - `403 Forbidden` for non-owner access
+  - `401 Unauthorized` for unauthenticated requests
+- Verified full end-to-end behavior via Postman:
+  - JWT authentication
+  - Role-based authorization
+  - Correct persistence and DTO mapping
+- Preserved strict Clean/Onion Architecture boundaries:
+  - No EF Core or Identity dependencies in Application
+  - Controllers delegate exclusively to use cases
+
+

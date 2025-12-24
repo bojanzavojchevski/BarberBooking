@@ -57,6 +57,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IShopRepository, ShopRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+        services.AddScoped<IServiceRepository, ServiceRepository>();
+
+
 
         return services;
     }

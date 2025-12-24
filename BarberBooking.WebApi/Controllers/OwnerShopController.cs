@@ -16,7 +16,7 @@ public class OwnerShopController : ControllerBase
     public OwnerShopController(CreateMyShopUseCase create, GetMyShopUseCase get)
     {
         _create = create;
-        _get = get; 
+        _get = get;
     }
 
     [HttpPost]
