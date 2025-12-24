@@ -128,6 +128,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 
 builder.Services.AddScoped<CreateMyShopUseCase>();
+builder.Services.AddScoped<GetMyShopUseCase>();
 
 
 

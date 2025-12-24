@@ -11,9 +11,13 @@ namespace BarberBooking.WebApi.Controllers;
 public class OwnerShopController : ControllerBase
 {
     private readonly CreateMyShopUseCase _create;
+    private readonly GetMyShopUseCase _get;
 
-    public OwnerShopController(CreateMyShopUseCase create) => _create = create;
-
+    public OwnerShopController(CreateMyShopUseCase create, GetMyShopUseCase get)
+    {
+        _create = create;
+        _get = get; 
+    }
 
     [HttpPost]
     public async Task<ActionResult<ShopDto>> Create(CreateMyShopRequest request, CancellationToken ct)
@@ -27,5 +31,13 @@ public class OwnerShopController : ControllerBase
         {
             return Conflict(new { error = "owner_already_has_shop" });
         }
+    }
+
+
+    [HttpGet]
+    public async Task<ActionResult<ShopDto>> GetMyShop(CancellationToken ct)
+    {
+        var dto = await _get.ExecuteAsync(ct);
+        return dto is null ? NotFound() : Ok(dto);
     }
 }
