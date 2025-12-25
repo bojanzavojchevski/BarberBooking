@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IServiceRepository, ServiceRepository>();
 
+        services.AddScoped<IBarberRepository, BarberRepository>();
 
 
         return services;

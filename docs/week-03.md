@@ -137,6 +137,38 @@ No scheduling or booking logic is introduced.
   - No EF Core or HTTP dependencies in Application layer
   - Controllers remain thin and delegate to use cases only
 
+---
+
+## Day 5 — Barbers Catalog (CRUD + Ownership)
+
+- Implemented Barber catalog domain:
+  - `Barber` entity with invariants for display name and bio
+  - Soft deletion via `ISoftDeletable`
+  - Active/inactive lifecycle support
+- Added EF Core persistence:
+  - `BarberConfiguration` with table mapping and constraints
+  - Case-insensitive uniqueness per shop using `normalized_display_name`
+  - Global query filter excluding soft-deleted barbers
+- Implemented Application use cases:
+  - Create barber
+  - List owner’s barbers
+  - Update barber details and active status
+- Enforced ownership and authorization:
+  - All operations scoped to owner’s shop
+  - Protected by `OwnerOnly` policy
+- Implemented REST endpoints:
+  - `POST /api/owner/barbers`
+  - `GET /api/owner/barbers`
+  - `PUT /api/owner/barbers/{id}`
+- Verified behavior via Postman:
+  - Correct CRUD behavior
+  - Case-insensitive uniqueness enforcement
+  - Proper HTTP status codes (`200`, `400`, `401`, `403`, `409`)
+- Confirmed production readiness:
+  - `dotnet build` and `dotnet test` passing
+  - Clean Onion/Clean Architecture boundaries preserved
+
+
 
 
 

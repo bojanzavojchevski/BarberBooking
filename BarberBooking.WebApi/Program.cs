@@ -1,6 +1,7 @@
 using BarberBooking.Application.Auth;
 using BarberBooking.Application.Auth.Interfaces;
 using BarberBooking.Application.Interfaces;
+using BarberBooking.Application.UseCases.Barbers;
 using BarberBooking.Application.UseCases.Services;
 using BarberBooking.Application.UseCases.Shops;
 using BarberBooking.Infrastructure.DependencyInjection;
@@ -26,7 +27,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog();
 
-// Add services to the container.
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddAuthentication()
@@ -125,16 +125,24 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+
+// user
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
-
+// shop
 builder.Services.AddScoped<CreateMyShopUseCase>();
 builder.Services.AddScoped<GetMyShopUseCase>();
+// service
 builder.Services.AddScoped<CreateServiceUseCase>();
 builder.Services.AddScoped<ListMyServicesUseCase>();
 builder.Services.AddScoped<UpdateServiceUseCase>();
 builder.Services.AddScoped<SetServiceActiveUseCase>();
 builder.Services.AddScoped<DeleteServiceUseCase>();
+// barbers
+builder.Services.AddScoped<CreateBarberUseCase>();
+builder.Services.AddScoped<ListMyBarbersUseCase>();
+builder.Services.AddScoped<UpdateBarberUseCase>();
+
 
 
 
