@@ -13,7 +13,7 @@ namespace BarberBooking.Infrastructure.Repositories;
 public sealed class BarberRepository : IBarberRepository
 {
     private readonly AppDbContext _db;
-    
+
     public BarberRepository(AppDbContext db) => _db = db;
 
     public Task AddAsync(Barber barber, CancellationToken ct)

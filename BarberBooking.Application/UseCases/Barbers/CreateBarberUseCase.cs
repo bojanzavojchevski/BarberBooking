@@ -23,7 +23,7 @@ public sealed class CreateBarberUseCase
         _uow = uow;
     }
 
-    public async Task<BarberDto> ExecuteAsync(CreateBarberRequest request,  CancellationToken ct)
+    public async Task<BarberDto> ExecuteAsync(CreateBarberRequest request, CancellationToken ct)
     {
         var shop = await _shops.GetByOwnerUserIdAsync(_currentUser.UserId, ct)
             ?? throw new InvalidOperationException("owner_has_no_shop");
