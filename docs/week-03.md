@@ -167,8 +167,3 @@ No scheduling or booking logic is introduced.
 - Confirmed production readiness:
   - `dotnet build` and `dotnet test` passing
   - Clean Onion/Clean Architecture boundaries preserved
-
-
-
-
-
