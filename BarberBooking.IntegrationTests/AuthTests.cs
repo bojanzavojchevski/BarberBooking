@@ -1,90 +1,32 @@
-﻿using BarberBooking.Application.Auth.DTOs;
-using BarberBooking.Infrastructure.Identity;
-using BarberBooking.Infrastructure.Persistence;
-using DotNet.Testcontainers;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
-using Testcontainers.PostgreSql;
+using BarberBooking.Application.Auth.DTOs;
+using BarberBooking.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
-public sealed class AuthTests : IAsyncLifetime
+namespace BarberBooking.IntegrationTests;
+
+public sealed class AuthTests : IClassFixture<TestAppFactory>
 {
+    private readonly TestAppFactory _factory;
+    private readonly HttpClient _client;
 
-
-    private readonly PostgreSqlContainer _pg = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
-        .WithDatabase("bb_test")
-        .WithUsername("postgres")
-        .WithPassword("postgres")
-        .Build();
-
-    private WebApplicationFactory<Program> _factory = default!;
-    private HttpClient _client = default!;
-
-    public async Task InitializeAsync()
+    public AuthTests(TestAppFactory factory)
     {
-        await _pg.StartAsync();
-
-        var cs = _pg.GetConnectionString();
-
-        // ✅ ова мора да е BEFORE WebApplicationFactory е креиран
-        Environment.SetEnvironmentVariable("ConnectionStrings__Default", cs);
-        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", cs);
-
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureAppConfiguration((ctx, cfg) =>
-                {
-                    cfg.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        // можеш да го оставиш и ова, ама ENV горе е “hard override”
-                        ["ConnectionStrings:Default"] = cs,
-                        ["Jwt:Issuer"] = "bb",
-                        ["Jwt:Audience"] = "bb",
-                        ["Jwt:SigningKey"] = new string('x', 64),
-                        ["Jwt:AccessTokenMinutes"] = "10",
-                        ["RefreshTokens:Pepper"] = "test-pepper",
-                        ["RefreshTokens:Days"] = "30",
-                    });
-                });
-            });
-
+        _factory = factory;
         _client = _factory.CreateClient();
-
-        // Apply migrations + seed a test user
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
-
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-        var email = "test@bb.com";
-        var existing = await userManager.FindByEmailAsync(email);
-        if (existing is null)
-        {
-            var user = new ApplicationUser { UserName = email, Email = email, EmailConfirmed = true };
-            var res = await userManager.CreateAsync(user, "StrongPass123!");
-            if (!res.Succeeded) throw new Exception(string.Join("; ", res.Errors.Select(e => e.Description)));
-        }
     }
 
-    public async Task DisposeAsync()
-    {
-        _client.Dispose();
-        await _factory.DisposeAsync();
-        await _pg.DisposeAsync();
-    }
+    private Task EnsureTestUserAsync()
+        => AuthSeeder.EnsureUserAsync(_factory.Services, "test@bb.com", "StrongPass123!", emailConfirmed: true);
 
     [Fact]
     public async Task Refresh_Rotates_And_Revokes_Old()
     {
-        await ResetDatabaseAsync();
+        await EnsureTestUserAsync();
+        await ResetRefreshTokensAsync();
 
         var login = await _client.PostAsJsonAsync("/api/auth/login",
             new LoginRequestDto("test@bb.com", "StrongPass123!"));
@@ -138,13 +80,16 @@ public sealed class AuthTests : IAsyncLifetime
     [Fact]
     public async Task Refresh_Reuse_Attack_Revokes_Family_And_Returns_401()
     {
+        await EnsureTestUserAsync();
+        await ResetRefreshTokensAsync();
+
         var login = await _client.PostAsJsonAsync("/api/auth/login",
             new LoginRequestDto("test@bb.com", "StrongPass123!"));
         var t1 = await login.Content.ReadFromJsonAsync<AuthTokensDto>();
         var r1 = t1!.RefreshToken;
 
         var refresh = await _client.PostAsJsonAsync("/api/auth/refresh", new RefreshRequestDto(r1));
-        var t2 = await refresh.Content.ReadFromJsonAsync<AuthTokensDto>();
+        Assert.Equal(HttpStatusCode.OK, refresh.StatusCode);
 
         // Reuse old token r1
         var reuse = await _client.PostAsJsonAsync("/api/auth/refresh", new RefreshRequestDto(r1));
@@ -157,15 +102,16 @@ public sealed class AuthTests : IAsyncLifetime
         var familyId = (await db.RefreshTokens
             .OrderByDescending(x => x.CreatedAtUtc)
             .FirstAsync()).FamilyId;
-        var active = await db.RefreshTokens.CountAsync(x => x.FamilyId == familyId && x.RevokedAtUtc == null);
 
+        var active = await db.RefreshTokens.CountAsync(x => x.FamilyId == familyId && x.RevokedAtUtc == null);
         Assert.Equal(0, active);
     }
 
     [Fact]
     public async Task Refresh_Expired_Returns_401_Generic()
     {
-        await ResetDatabaseAsync();
+        await EnsureTestUserAsync();
+        await ResetRefreshTokensAsync();
 
         // Create an expired token row directly
         using (var scope = _factory.Services.CreateScope())
@@ -178,7 +124,7 @@ public sealed class AuthTests : IAsyncLifetime
                 Id = Guid.NewGuid(),
                 UserId = user.Id,
                 FamilyId = Guid.NewGuid(),
-                TokenHash = "DEADBEEF", // won't match; we only care about response shape (still 401)
+                TokenHash = "DEADBEEF",
                 CreatedAtUtc = DateTime.UtcNow.AddDays(-2),
                 ExpiresAtUtc = DateTime.UtcNow.AddDays(-1),
             });
@@ -186,17 +132,17 @@ public sealed class AuthTests : IAsyncLifetime
             await db.SaveChangesAsync();
         }
 
-        // Any invalid token should be 401 generic
         var res = await _client.PostAsJsonAsync("/api/auth/refresh", new RefreshRequestDto("some-invalid"));
         Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
     }
-    private async Task ResetDatabaseAsync()
+
+    private async Task ResetRefreshTokensAsync()
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         await db.Database.ExecuteSqlRawAsync("""
-        TRUNCATE TABLE "RefreshTokens" RESTART IDENTITY CASCADE;
-    """);
+            TRUNCATE TABLE "RefreshTokens" RESTART IDENTITY CASCADE;
+        """);
     }
 }
