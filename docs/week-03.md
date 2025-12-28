@@ -167,3 +167,40 @@ No scheduling or booking logic is introduced.
 - Confirmed production readiness:
   - `dotnet build` and `dotnet test` passing
   - Clean Onion/Clean Architecture boundaries preserved
+
+---
+
+## Day 6 — Public Catalog (Read-only Browsing)
+
+- Implemented public, anonymous read-only catalog browsing (no authentication required)
+- Added dedicated read service abstraction in Application:
+  - `IPublicCatalogReadService`
+  - Ensures clean separation between write-path repositories and read projections
+- Introduced public read DTOs (no EF entities exposed):
+  - `ShopListItemDto`
+  - `ShopPublicDto`
+  - `ShopPublicDetailsDto`
+  - `ServicePublicDto`
+  - `BarberPublicDto`
+- Added query contract for public shop browsing:
+  - `GetPublicShopsQuery` with search + pagination
+- Implemented Infrastructure read projections using EF Core:
+  - `AsNoTracking()` queries for performance
+  - DTO projections via `Select(...)` (no `Include`, no entity graph exposure)
+  - Fixed query count for details view (no N+1)
+- Enforced public visibility rules:
+  - Only `IsActive = true` shops returned
+  - Only `IsActive = true` services and barbers returned
+  - Soft-deleted records excluded via global query filters (`ISoftDeletable`)
+- Exposed public API endpoints:
+  - `GET /api/public/shops` (paged list + optional `q` search)
+  - `GET /api/public/shops/{slug}` (shop details + active services + active barbers)
+- Verified behavior via Postman:
+  - Endpoints work without JWT
+  - Slug lookup returns correct shop details
+  - Search and pagination behave correctly
+- Maintained strict Clean/Onion Architecture boundaries:
+  - Application defines contracts + DTOs
+  - Infrastructure implements read models (projections)
+  - WebApi exposes endpoints only (no business logic)
+

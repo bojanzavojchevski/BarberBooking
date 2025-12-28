@@ -2,6 +2,7 @@
 using BarberBooking.Application.Auth.Interfaces;
 using BarberBooking.Application.Interfaces;
 using BarberBooking.Infrastructure.Auth;
+using BarberBooking.Infrastructure.Catalog;
 using BarberBooking.Infrastructure.Identity;
 using BarberBooking.Infrastructure.Persistence;
 using BarberBooking.Infrastructure.Repositories;
@@ -60,6 +61,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IServiceRepository, ServiceRepository>();
 
         services.AddScoped<IBarberRepository, BarberRepository>();
+
+        services.AddScoped<IPublicCatalogReadService, PublicCatalogReadService>();
+
 
 
         return services;

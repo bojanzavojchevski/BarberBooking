@@ -11,10 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\" />
     <Folder Include="Behaviors\" />
-    <Folder Include="UseCases\PublicCatalog\DTOs\" />
-    <Folder Include="UseCases\PublicCatalog\Queries\" />
   </ItemGroup>
 
   <ItemGroup>
