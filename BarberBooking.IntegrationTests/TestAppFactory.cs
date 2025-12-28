@@ -19,22 +19,14 @@ public sealed class TestAppFactory : WebApplicationFactory<Program>, IAsyncLifet
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureServices(services =>
-        {
-            // Remove existing AppDbContext registration
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-            if (descriptor is not null) services.Remove(descriptor);
-
-            // Register AppDbContext with test container connection string
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(_db.GetConnectionString()));
-        });
-
         builder.ConfigureAppConfiguration((ctx, cfg) =>
         {
+            // IMPORTANT: this ensures AddInfrastructure() sees it in IConfiguration
             cfg.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["ConnectionStrings:Default"] = _db.GetConnectionString(),
+
+                // keep your auth settings here too
                 ["Jwt:Issuer"] = "bb",
                 ["Jwt:Audience"] = "bb",
                 ["Jwt:SigningKey"] = new string('x', 64),
@@ -43,11 +35,24 @@ public sealed class TestAppFactory : WebApplicationFactory<Program>, IAsyncLifet
                 ["RefreshTokens:Days"] = "30",
             });
         });
+
+        builder.ConfigureServices(services =>
+        {
+            // Remove existing registration
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+            if (descriptor is not null) services.Remove(descriptor);
+
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(_db.GetConnectionString()));
+        });
     }
 
     public async Task InitializeAsync()
     {
         await _db.StartAsync();
+
+        Environment.SetEnvironmentVariable("ConnectionStrings__Default", _db.GetConnectionString());
 
         // Apply migrations
         using var scope = Services.CreateScope();
