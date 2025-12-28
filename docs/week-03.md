@@ -173,34 +173,53 @@ No scheduling or booking logic is introduced.
 ## Day 6 — Public Catalog (Read-only Browsing)
 
 - Implemented public, anonymous read-only catalog browsing (no authentication required)
-- Added dedicated read service abstraction in Application:
-  - `IPublicCatalogReadService`
-  - Ensures clean separation between write-path repositories and read projections
+- Added Application read abstraction for projections:
+  - `IPublicCatalogReadService` (read-only, DTO-based)
 - Introduced public read DTOs (no EF entities exposed):
-  - `ShopListItemDto`
-  - `ShopPublicDto`
-  - `ShopPublicDetailsDto`
-  - `ServicePublicDto`
-  - `BarberPublicDto`
-- Added query contract for public shop browsing:
-  - `GetPublicShopsQuery` with search + pagination
+  - `ShopListItemDto`, `ShopPublicDto`, `ShopPublicDetailsDto`
+  - `ServicePublicDto`, `BarberPublicDto`
+- Added public query contract:
+  - `GetPublicShopsQuery` (search + pagination)
 - Implemented Infrastructure read projections using EF Core:
-  - `AsNoTracking()` queries for performance
-  - DTO projections via `Select(...)` (no `Include`, no entity graph exposure)
+  - `AsNoTracking()` for read performance
+  - `Select(...)` projections (no `Include`, no entity graph exposure)
   - Fixed query count for details view (no N+1)
 - Enforced public visibility rules:
-  - Only `IsActive = true` shops returned
-  - Only `IsActive = true` services and barbers returned
+  - Only `IsActive = true` shops are returned
+  - Only `IsActive = true` services and barbers are returned
   - Soft-deleted records excluded via global query filters (`ISoftDeletable`)
 - Exposed public API endpoints:
   - `GET /api/public/shops` (paged list + optional `q` search)
   - `GET /api/public/shops/{slug}` (shop details + active services + active barbers)
-- Verified behavior via Postman:
-  - Endpoints work without JWT
-  - Slug lookup returns correct shop details
-  - Search and pagination behave correctly
+- Verified behavior via Postman (no JWT required)
 - Maintained strict Clean/Onion Architecture boundaries:
-  - Application defines contracts + DTOs
-  - Infrastructure implements read models (projections)
-  - WebApi exposes endpoints only (no business logic)
+  - Application defines DTOs + contracts
+  - Infrastructure implements projections
+  - WebApi exposes endpoints only
+
+---
+
+## Day 7 — Catalog Integration Tests + Week Review (Definition of Done)
+
+- Added integration test host for the API using Testcontainers + PostgreSQL:
+  - Shared `TestAppFactory` based on `WebApplicationFactory<Program>`
+  - Automatic migrations applied for test database
+- Added deterministic database seeding for catalog scenarios:
+  - Active vs inactive shops
+  - Active vs inactive services/barbers
+  - Soft-deleted entities to validate global query filters
+- Implemented integration tests proving catalog correctness:
+  - Public shop list returns only active, non-deleted shops
+  - Public shop details by slug returns only active services and active/non-deleted barbers
+  - Inactive shop returns `404 Not Found`
+  - Public search (`q`) filters shops by name/slug
+- Refactored existing Auth integration tests to reuse the shared test host (single containerized environment)
+- Verified Definition of Done:
+  - `dotnet build` succeeds
+  - `dotnet test` succeeds with Docker/Testcontainers
+  - No EF entities leak from API responses (DTO-only)
+  - Soft delete filters enforced consistently
+  - Clean architecture boundaries preserved
+
+
 
