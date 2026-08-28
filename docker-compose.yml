@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: barberbooking-postgres
+
+    environment:
+      POSTGRES_DB: BarberBookingDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - barberbooking-postgres-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d BarberBookingDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: BarberBooking.WebApi/Dockerfile
+
+    container_name: barberbooking-api
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=BarberBookingDb;Username=postgres;Password=${POSTGRES_PASSWORD}"
+
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+      RefreshTokens__Pepper: ${REFRESH_TOKEN_PEPPER}
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: barberbooking-frontend
+      dockerfile: Dockerfile
+
+    container_name: barberbooking-frontend
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      - backend
+
+volumes:
+  barberbooking-postgres-data:
