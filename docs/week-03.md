@@ -220,6 +220,3 @@ No scheduling or booking logic is introduced.
   - No EF entities leak from API responses (DTO-only)
   - Soft delete filters enforced consistently
   - Clean architecture boundaries preserved
-
-
-

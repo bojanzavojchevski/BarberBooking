@@ -12,3 +12,16 @@
 
 # Secrets / local config
 appsettings.Development.json
+
+# Frontend / Node
+**/node_modules/
+**/dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test output
+**/TestResults/
+**/coverage/
