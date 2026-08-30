@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: barberbooking-config
+  namespace: barber-booking
+
+data:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_URLS: "http://+:8080"
+
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "BarberBookingDb"
+
+  Jwt__Issuer: "BarberBooking"
+  Jwt__Audience: "BarberBooking"
+  Jwt__AccessTokenMinutes: "10"
+
+  RefreshTokens__Days: "30"
+
+  AllowedHosts: "*"

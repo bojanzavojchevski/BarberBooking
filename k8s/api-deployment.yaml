@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: backend
+  namespace: barber-booking
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: backend
+
+  template:
+    metadata:
+      labels:
+        app: backend
+
+    spec:
+      containers:
+        - name: backend
+          image: freak4y/barberbooking-api:latest
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 8080
+
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: ASPNETCORE_ENVIRONMENT
+
+            - name: ASPNETCORE_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: ASPNETCORE_URLS
+
+            - name: Jwt__Issuer
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: Jwt__Issuer
+
+            - name: Jwt__Audience
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: Jwt__Audience
+
+            - name: Jwt__AccessTokenMinutes
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: Jwt__AccessTokenMinutes
+
+            - name: RefreshTokens__Days
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: RefreshTokens__Days
+
+            - name: AllowedHosts
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: AllowedHosts
+
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: POSTGRES_HOST
+
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: POSTGRES_PORT
+
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: barberbooking-config
+                  key: POSTGRES_DB
+
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: barberbooking-secret
+                  key: POSTGRES_USER
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: barberbooking-secret
+                  key: POSTGRES_PASSWORD
+
+            - name: Jwt__SigningKey
+              valueFrom:
+                secretKeyRef:
+                  name: barberbooking-secret
+                  key: Jwt__SigningKey
+
+            - name: RefreshTokens__Pepper
+              valueFrom:
+                secretKeyRef:
+                  name: barberbooking-secret
+                  key: RefreshTokens__Pepper
+
+            - name: ConnectionStrings__Default
+              value: "Host=$(POSTGRES_HOST);Port=$(POSTGRES_PORT);Database=$(POSTGRES_DB);Username=$(POSTGRES_USER);Password=$(POSTGRES_PASSWORD)"
+
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5

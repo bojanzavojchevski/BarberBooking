@@ -25,3 +25,6 @@ appsettings.Development.json
 # Test output
 **/TestResults/
 **/coverage/
+
+# Kubernetes local secrets
+k8s/secret.yaml
