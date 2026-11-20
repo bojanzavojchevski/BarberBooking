@@ -1,4 +1,6 @@
 ﻿using BarberBooking.Application.Auth;
+using BarberBooking.Application.Bookings;
+using BarberBooking.Infrastructure.Bookings;
 using BarberBooking.Application.Auth.Interfaces;
 using BarberBooking.Application.Interfaces;
 using BarberBooking.Infrastructure.Auth;
@@ -65,6 +67,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPublicCatalogReadService, PublicCatalogReadService>();
 
 
+
+        services.AddScoped<IBookingService, BookingService>();
 
         return services;
     }

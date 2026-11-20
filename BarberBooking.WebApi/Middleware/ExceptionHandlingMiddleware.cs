@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using BarberBooking.Application.Bookings;
+using BarberBooking.Domain.Exceptions;
 using System.Text.Json;
 
 namespace BarberBooking.WebApi.Middleware;
@@ -14,6 +16,18 @@ public sealed class ExceptionHandlingMiddleware
         try
         {
             await _next(context);
+        }
+        catch (BookingException ex)
+        {
+            context.Response.StatusCode = ex.StatusCode;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Code }));
+        }
+        catch (DomainException)
+        {
+            context.Response.StatusCode = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync("{\"error\":\"invalid_booking\"}");
         }
         catch (UnauthorizedAccessException)
         {

@@ -22,6 +22,50 @@ namespace BarberBooking.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("BarberBooking.Domain.Entities.Appointment", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<Guid>("ShopId").HasColumnType("uuid");
+                    b.Property<Guid>("BarberId").HasColumnType("uuid");
+                    b.Property<Guid>("ServiceId").HasColumnType("uuid");
+                    b.Property<Guid>("CustomerId").HasColumnType("uuid");
+                    b.Property<DateTimeOffset>("StartUtc").HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset>("EndUtc").HasColumnType("timestamp with time zone");
+                    b.Property<decimal>("PriceAmount").HasPrecision(12, 2).HasColumnType("numeric(12,2)");
+                    b.Property<int>("Status").HasColumnType("integer");
+                    b.Property<DateTimeOffset>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset?>("CancelledAtUtc").HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+                    b.HasIndex("BarberId", "StartUtc");
+                    b.HasIndex("CustomerId", "StartUtc");
+                    b.ToTable("appointments", (string)null);
+                });
+
+            modelBuilder.Entity("BarberBooking.Domain.Scheduling.BarberTimeOff", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<Guid>("BarberId").HasColumnType("uuid");
+                    b.Property<DateTimeOffset>("StartUtc").HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset>("EndUtc").HasColumnType("timestamp with time zone");
+                    b.Property<string>("Note").HasMaxLength(250).HasColumnType("character varying(250)");
+                    b.HasKey("Id");
+                    b.HasIndex("BarberId", "StartUtc");
+                    b.ToTable("barber_time_off", (string)null);
+                });
+
+            modelBuilder.Entity("BarberBooking.Domain.Scheduling.WeeklyShift", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<Guid>("BarberId").HasColumnType("uuid");
+                    b.Property<int>("DayOfWeek").HasColumnType("integer");
+                    b.Property<int>("StartMinute").HasColumnType("integer");
+                    b.Property<int>("EndMinute").HasColumnType("integer");
+                    b.HasKey("Id");
+                    b.HasIndex("BarberId", "DayOfWeek");
+                    b.ToTable("weekly_shifts", (string)null);
+                });
+
             modelBuilder.Entity("BarberBooking.Domain.Barbers.Barber", b =>
                 {
                     b.Property<Guid>("Id")
