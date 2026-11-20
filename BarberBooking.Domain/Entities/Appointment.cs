@@ -37,10 +37,15 @@ public sealed class Appointment
 
         return new Appointment
         {
-            Id = Guid.NewGuid(), ShopId = shopId, BarberId = barberId,
-            ServiceId = serviceId, CustomerId = customerId,
-            StartUtc = startUtc, EndUtc = startUtc.AddMinutes(durationMinutes),
-            PriceAmount = priceAmount, CreatedAtUtc = nowUtc,
+            Id = Guid.NewGuid(),
+            ShopId = shopId,
+            BarberId = barberId,
+            ServiceId = serviceId,
+            CustomerId = customerId,
+            StartUtc = startUtc,
+            EndUtc = startUtc.AddMinutes(durationMinutes),
+            PriceAmount = priceAmount,
+            CreatedAtUtc = nowUtc,
             Status = AppointmentStatus.Confirmed
         };
     }

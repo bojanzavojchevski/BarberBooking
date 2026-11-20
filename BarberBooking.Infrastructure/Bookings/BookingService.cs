@@ -131,8 +131,8 @@ public sealed class BookingService : IBookingService
         {
             await _db.SaveChangesAsync(ct);
         }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
-            { SqlState: PostgresErrorCodes.ExclusionViolation })
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg &&
+            pg.SqlState == PostgresErrorCodes.ExclusionViolation)
         {
             // The DB constraint is authoritative if requests race.
             throw new BookingException(409, "slot_unavailable");

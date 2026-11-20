@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace BarberBooking.WebApi.Controllers;
 
@@ -12,22 +14,36 @@ public sealed class DevSeedController : ControllerBase
     private readonly IWebHostEnvironment _env;
     private readonly UserManager<ApplicationUser> _users;
     private readonly RoleManager<IdentityRole<Guid>> _roles;
+    private readonly IConfiguration _configuration;
 
     public DevSeedController(
         IWebHostEnvironment env,
         UserManager<ApplicationUser> users,
-        RoleManager<IdentityRole<Guid>> roles)
+        RoleManager<IdentityRole<Guid>> roles, IConfiguration configuration)
     {
         _env = env;
         _users = users;
         _roles = roles;
+        _configuration = configuration;
     }
 
     [HttpPost("owner")]
-    public async Task<IActionResult> SeedOwner([FromBody] SeedOwnerRequest req)
+    public async Task<IActionResult> SeedOwner([FromBody] SeedOwnerRequest req,
+        [FromHeader(Name = "X-Dev-Seed-Key")] string? providedKey)
     {
         if (!_env.IsDevelopment())
-            return NotFound(); // don't expose in prod
+            return NotFound();
+
+        // Never allow unauthenticated owner provisioning with only an email/password.
+        var configuredKey = _configuration["DevSeed:Key"];
+        if (string.IsNullOrWhiteSpace(configuredKey) ||
+            string.IsNullOrWhiteSpace(providedKey))
+            return NotFound();
+
+        var expected = SHA256.HashData(Encoding.UTF8.GetBytes(configuredKey));
+        var actual = SHA256.HashData(Encoding.UTF8.GetBytes(providedKey));
+        if (!CryptographicOperations.FixedTimeEquals(expected, actual))
+            return NotFound();
 
         var email = req.Email.Trim().ToLowerInvariant();
 

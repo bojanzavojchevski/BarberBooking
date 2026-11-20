@@ -35,6 +35,7 @@ services:
 
       Jwt__SigningKey: ${JWT_SIGNING_KEY}
       RefreshTokens__Pepper: ${REFRESH_TOKEN_PEPPER}
+      DevSeed__Key: ${DEV_SEED_KEY:-}
 
     ports:
       - "8080:8080"
