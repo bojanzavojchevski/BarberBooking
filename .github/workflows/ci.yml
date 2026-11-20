@@ -30,6 +30,21 @@ jobs:
         env:
           DOCKER_HOST: unix:///var/run/docker.sock
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: barberbooking-frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: barberbooking-frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: barberbooking-frontend
+
       - name: Install dotnet-format
         run: dotnet tool install -g dotnet-format
 
