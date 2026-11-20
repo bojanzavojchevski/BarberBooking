@@ -11,6 +11,8 @@ using BarberBooking.Infrastructure.Auth;
 using BarberBooking.Domain.Services;
 using BarberBooking.Domain.Shops;
 using BarberBooking.Domain.Barbers;
+using BarberBooking.Domain.Entities;
+using BarberBooking.Domain.Scheduling;
 
 namespace BarberBooking.Infrastructure.Persistence;
 
@@ -23,6 +25,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
     public DbSet<Service> Services => Set<Service>();
     public DbSet<Shop> Shops => Set<Shop>();
     public DbSet<Barber> Barbers => Set<Barber>();
+    public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<WeeklyShift> WeeklyShifts => Set<WeeklyShift>();
+    public DbSet<BarberTimeOff> BarberTimeOffs => Set<BarberTimeOff>();
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
