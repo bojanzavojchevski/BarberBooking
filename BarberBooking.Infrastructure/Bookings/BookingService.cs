@@ -189,7 +189,7 @@ public sealed class BookingService : IBookingService
     }
 
     private static string MinutesToTime(int minute) =>
-        TimeSpan.FromMinutes(minute).ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+        minute == 1440 ? "24:00" : TimeSpan.FromMinutes(minute).ToString(@"hh\:mm", CultureInfo.InvariantCulture);
 
     private static int ParseMinute(string time)
     {
